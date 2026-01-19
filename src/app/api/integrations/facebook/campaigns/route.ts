@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifySession } from '@/lib/auth';
 import { db } from '@/db';
 import { integrations } from '@/db/schema';
-import { getCampaigns, getCampaignInsights } from '@/lib/facebook';
+import { getEnhancedInsights, getAdSets, getAds } from '@/lib/facebook';
 import { eq, and } from 'drizzle-orm';
 
 export async function GET(req: NextRequest) {
@@ -10,6 +10,7 @@ export async function GET(req: NextRequest) {
         const { userId } = await verifySession();
         const { searchParams } = new URL(req.url);
         const datePreset = searchParams.get('date_preset') || 'last_30d';
+        const level = (searchParams.get('level') || 'campaign') as 'campaign' | 'adset' | 'ad';
 
         // Get Facebook integration
         const [integration] = await db
@@ -38,29 +39,24 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        // Fetch campaigns and insights
-        const [campaigns, insights] = await Promise.all([
-            getCampaigns(accessToken, accountId),
-            getCampaignInsights(accessToken, accountId, datePreset),
+        // Fetch data based on level
+        const [insights, adSets, ads] = await Promise.all([
+            getEnhancedInsights(accessToken, accountId, level, datePreset),
+            level !== 'campaign' ? getAdSets(accessToken, accountId) : Promise.resolve([]),
+            level === 'ad' ? getAds(accessToken, accountId) : Promise.resolve([]),
         ]);
 
-        // Merge campaigns with insights
-        const campaignsWithInsights = campaigns.map(campaign => {
-            const insight = insights.find(i => i.campaign_id === campaign.id);
-            return {
-                ...campaign,
-                insights: insight || null,
-            };
-        });
-
         return NextResponse.json({
-            campaigns: campaignsWithInsights,
+            insights,
+            adSets,
+            ads,
             accountId,
+            level,
         });
     } catch (error) {
-        console.error('Fetch campaigns error:', error);
+        console.error('Fetch insights error:', error);
         return NextResponse.json(
-            { error: 'Failed to fetch campaigns' },
+            { error: 'Failed to fetch insights' },
             { status: 500 }
         );
     }
