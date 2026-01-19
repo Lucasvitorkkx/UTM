@@ -10,6 +10,8 @@ import {
     Settings,
     CreditCard,
     LogOut,
+    Facebook,
+    Plug,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -17,6 +19,8 @@ const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Links', href: '/dashboard/links', icon: LinkIcon },
     { name: 'Analytics', href: '/dashboard/analytics', icon: BarChart3 },
+    { name: 'Campaigns', href: '/dashboard/campaigns', icon: Facebook },
+    { name: 'Integrations', href: '/dashboard/integrations', icon: Plug },
     { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];

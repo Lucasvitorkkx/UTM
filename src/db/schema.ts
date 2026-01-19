@@ -45,3 +45,15 @@ export const clicks = pgTable('clicks', {
     referer: text('referer'),
     userAgent: text('user_agent'),
 });
+
+export const integrations = pgTable('integrations', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id').references(() => users.id).notNull(),
+    provider: varchar('provider', { length: 50 }).notNull(), // 'facebook'
+    accessToken: text('access_token').notNull(),
+    accountId: varchar('account_id', { length: 255 }),
+    accountName: varchar('account_name', { length: 255 }),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
